@@ -8,7 +8,10 @@
 
 #import "ViewController.h"
 
-@interface ViewController ()
+@interface ViewController (){
+    MBProgressHUD *HUD;
+
+}
 
 @end
 
@@ -30,6 +33,45 @@
 
 - (IBAction)tweetTapped:(id)sender {
     
+    HUD = [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    HUD.labelText = @"sharing";
+    
+    ACAccountStore *accountStore = [[ACAccountStore alloc] init];
+    ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+    [accountStore requestAccessToAccountsWithType:accountType withCompletionHandler:^(BOOL granted, NSError *error) {
+        if (granted) {
+            NSArray *accounts = [accountStore accountsWithAccountType:accountType];
+            if (accounts.count) {
+                ACAccount * twitterAccount = [accounts objectAtIndex:0];
+                NSURL *url = [NSURL URLWithString:@"https://upload.twitter.com/1/statuses/update_with_media.json"];
+                
+                TWRequest* request = [[TWRequest alloc] initWithURL:url parameters:nil requestMethod:TWRequestMethodPOST];
+                [request addMultiPartData:[@"this is a test upload haha" dataUsingEncoding:NSUTF8StringEncoding] withName:@"status" type:@"multipart/form-data"];
+                [request addMultiPartData:UIImagePNGRepresentation(imageView.image) withName:@"media" type:@"multipart/form-data"];
+                [request setAccount:twitterAccount];
+                
+                [request performRequestWithHandler:^(NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error) {
+                    if (responseData) {
+                        NSLog(@"success?? %@",responseData);
+                        [MBProgressHUD hideHUDForView:self.view animated:YES];
+                        NSLog(@"posted successfully");
+                    }
+                    else{
+                        NSLog(@"failed? %@",error);
+                        [MBProgressHUD hideHUDForView:self.view animated:YES];
+                        NSLog(@"Error posting");
+                        
+                    }
+                }];
+                
+            }
+        }
+    }];
+    
+}
+
+- (IBAction)tweetTappediOS6:(id)sender {
+        
     if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeTwitter])
     {
         SLComposeViewController *tweetSheet = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeTwitter];
@@ -42,11 +84,11 @@
             NSLog(@"wala");
         
         [self presentViewController:tweetSheet animated:YES completion:nil];
-        
         tweetSheet.completionHandler = ^(SLComposeViewControllerResult result) {
             switch(result) {
                     //  This means the user cancelled without sending the Tweet
                 case SLComposeViewControllerResultCancelled:
+                    [MBProgressHUD hideHUDForView:self.view animated:YES];
                     break;
                     //  This means the user hit 'Send'
                 case SLComposeViewControllerResultDone:
