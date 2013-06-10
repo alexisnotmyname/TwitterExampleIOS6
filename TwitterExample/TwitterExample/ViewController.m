@@ -46,7 +46,7 @@
                 NSURL *url = [NSURL URLWithString:@"https://upload.twitter.com/1/statuses/update_with_media.json"];
                 
                 TWRequest* request = [[TWRequest alloc] initWithURL:url parameters:nil requestMethod:TWRequestMethodPOST];
-                [request addMultiPartData:[@"this is a test upload haha" dataUsingEncoding:NSUTF8StringEncoding] withName:@"status" type:@"multipart/form-data"];
+                [request addMultiPartData:[@"this is a test upload" dataUsingEncoding:NSUTF8StringEncoding] withName:@"status" type:@"text/plain"];
                 [request addMultiPartData:UIImagePNGRepresentation(imageView.image) withName:@"media" type:@"multipart/form-data"];
                 [request setAccount:twitterAccount];
                 
